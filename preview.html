@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>💞 2 Months Anniversary 💞</title>
+
+<style>
+body {
+    margin:0;
+    font-family: monospace;
+    background: linear-gradient(135deg,#1a001f,#30003d);
+    color:white;
+    text-align:center;
+    overflow-x:hidden;
+}
+
+h1{
+    color:#ff66cc;
+    margin-top:20px;
+}
+
+.controls{
+    margin:15px;
+}
+
+input,button{
+    padding:8px 12px;
+    border:none;
+    border-radius:10px;
+    margin:5px;
+    cursor:pointer;
+}
+
+button{
+    background:#ff3399;
+    color:white;
+}
+
+button:hover{
+    background:#ff0066;
+}
+
+#ascii{
+    white-space:pre;
+    font-size:6px;
+    line-height:6px;
+    overflow:auto;
+    padding:10px;
+    text-shadow:0 0 5px #ff99cc;
+}
+
+canvas{
+    display:none;
+}
+
+/* Tim bay */
+.heart{
+    position:fixed;
+    bottom:-10px;
+    color:#ff4da6;
+    animation: float 6s linear infinite;
+}
+
+@keyframes float{
+    0%{transform:translateY(0) scale(1);}
+    100%{transform:translateY(-110vh) scale(1.5);}
+}
+
+.footer{
+    margin:20px;
+    color:#ff99cc;
+}
+</style>
+</head>
+<body>
+
+<h1>💞 Happy 2 Months Anniversary 💞</h1>
+
+<div class="controls">
+<input type="file" id="upload" accept="image/*" multiple>
+<br>
+Độ chi tiết:
+<input type="range" id="detail" min="60" max="220" value="120">
+<br>
+<button onclick="downloadTXT()">💾 TXT</button>
+<button onclick="downloadPNG()">📷 PNG</button>
+<button onclick="toggleHearts()">💕 Tim On/Off</button>
+<button onclick="toggleMusic()">🎵 Nhạc On/Off</button>
+</div>
+
+<canvas id="canvas"></canvas>
+<pre id="ascii"></pre>
+
+<div class="footer">
+Made with ❤️ for 2 Months Anniversary
+</div>
+
+<audio id="music" loop>
+<source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">
+</audio>
+
+<script>
+const upload=document.getElementById("upload");
+const canvas=document.getElementById("canvas");
+const ctx=canvas.getContext("2d");
+const asciiDiv=document.getElementById("ascii");
+const detail=document.getElementById("detail");
+const music=document.getElementById("music");
+
+const asciiChars="@#W$9876543210?!abc;:+=-,._ ";
+let currentASCII="";
+let heartsOn=true;
+let slideshowIndex=0;
+let images=[];
+
+upload.addEventListener("change",function(e){
+    images=[...e.target.files];
+    slideshowIndex=0;
+    startSlideshow();
+});
+
+detail.addEventListener("input",()=>{
+    if(images.length>0) processImage(images[slideshowIndex]);
+});
+
+function startSlideshow(){
+    if(images.length===0) return;
+    processImage(images[slideshowIndex]);
+    setInterval(()=>{
+        slideshowIndex=(slideshowIndex+1)%images.length;
+        processImage(images[slideshowIndex]);
+    },4000);
+}
+
+function processImage(file){
+    const reader=new FileReader();
+    reader.onload=function(event){
+        const img=new Image();
+        img.onload=function(){generateASCII(img);}
+        img.src=event.target.result;
+    }
+    reader.readAsDataURL(file);
+}
+
+function generateASCII(img){
+    const width=parseInt(detail.value);
+    const height=img.height*(width/img.width);
+    canvas.width=width;
+    canvas.height=height;
+    ctx.drawImage(img,0,0,width,height);
+    const data=ctx.getImageData(0,0,width,height).data;
+    let ascii="";
+    for(let y=0;y<height;y++){
+        for(let x=0;x<width;x++){
+            const i=(y*width+x)*4;
+            const r=data[i],g=data[i+1],b=data[i+2];
+            const bright=(0.299*r+0.587*g+0.114*b);
+            const index=Math.floor((bright/255)*(asciiChars.length-1));
+            const char=asciiChars[asciiChars.length-index-1];
+            ascii+=`<span style="color:rgb(${r},${g},${b})">${char}</span>`;
+        }
+        ascii+="\n";
+    }
+    currentASCII=ascii.replace(/<[^>]*>/g,"");
+    asciiDiv.innerHTML=ascii;
+}
+
+function downloadTXT(){
+    const blob=new Blob([currentASCII],{type:"text/plain"});
+    const link=document.createElement("a");
+    link.href=URL.createObjectURL(blob);
+    link.download="ascii_art.txt";
+    link.click();
+}
+
+function downloadPNG(){
+    html2canvas(asciiDiv).then(canvas=>{
+        const link=document.createElement("a");
+        link.download="ascii.png";
+        link.href=canvas.toDataURL();
+        link.click();
+    });
+}
+
+function toggleMusic(){
+    if(music.paused) music.play();
+    else music.pause();
+}
+
+function toggleHearts(){
+    heartsOn=!heartsOn;
+}
+
+setInterval(()=>{
+    if(!heartsOn) return;
+    const heart=document.createElement("div");
+    heart.className="heart";
+    heart.style.left=Math.random()*100+"vw";
+    heart.style.fontSize=(Math.random()*20+10)+"px";
+    heart.innerHTML="💖";
+    document.body.appendChild(heart);
+    setTimeout(()=>heart.remove(),6000);
+},300);
+
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+</body>
+</html>
